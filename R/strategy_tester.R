@@ -21,6 +21,7 @@ library(rapport)
 # for (lib in lib.set){source(lib)}
 
 
+#' @export
 apply.strategy <- function(vt, strategy_name, time_number, parameters = default.parameters(vt, strategy_name), tpsl_ratio = NA){
   # This function, applies a given strategy on a virtual trading environment
   # A strategy, is a hyper position with given parameters taken at time_number
@@ -133,6 +134,7 @@ apply.strategy <- function(vt, strategy_name, time_number, parameters = default.
   return(output)
 }
 
+#' @export
 generate.desired.test.data.frame <- function(num.time.intervals, num.parameter.sets, time_num_min, time_num_max, parameters_min, parameters_max, time.first = TRUE, replacement = TRUE){
   # If flag = TRUE  then  and each set is tested for n2 time intervals
   # If time.first = TRUE,
@@ -181,6 +183,7 @@ generate.desired.test.data.frame <- function(num.time.intervals, num.parameter.s
   return (desir.table)
 }
 
+#' @export
 evaluate.strategy = function(vt, strategy_name, desired_test_table){
   # vt = prepare.environment(currency_pair, from_date, until_date, period = period, dt_format = dt_format)
 
@@ -219,6 +222,7 @@ evaluate.strategy = function(vt, strategy_name, desired_test_table){
   return(output)
 }
 
+#' @export
 summary = function(R, period = "D", remove_incomplete = FALSE){
   # Input argument R is a table(data.frame) containing the evaluation results
   # It can be the output of function "evaluate.strategy()"

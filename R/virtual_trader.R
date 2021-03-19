@@ -22,7 +22,7 @@
 # You may sell your product to companies like this:
 # http://exponentialtrading.com.au/careers/
 
-insert.position = function(pos, time_num_order, time_num_birth = time_num_order, time_num_death = NA, time_order, time_birth = time_order, time_death = NA, type = 1, active = TRUE, price, lot = 0.1, tp = 0, sl = 0, label = "UNNAMED"){
+insert.position.old = function(pos, time_num_order, time_num_birth = time_num_order, time_num_death = NA, time_order, time_birth = time_order, time_death = NA, type = 1, active = TRUE, price, lot = 0.1, tp = 0, sl = 0, label = "UNNAMED"){
   # This function inserts a row to the end of position data frame (adds a position)
   p = data.frame(
     time.num.order = c(pos$time.num.order, time_num_order),
@@ -41,6 +41,25 @@ insert.position = function(pos, time_num_order, time_num_birth = time_num_order,
   return(p)
 }
 
+insert.position = function(pos, time_num_order, time_num_birth = time_num_order, time_num_death = NA, time_order, time_birth = time_order, time_death = NA, type = 1, active = TRUE, price, lot = 0.1, tp = 0, sl = 0, label = "UNNAMED"){
+  # This function inserts a row to the end of position data frame (adds a position)
+  nrw = nrow(pos) + 1
+
+  pos[nrw, 'time.num.order'] =  time_num_order
+  pos[nrw, 'time.num.birth'] =  time_num_birth
+  pos[nrw, 'time.num.death'] =  time_num_death
+  pos[nrw, 'time.birth'] = time_birth
+  pos[nrw, 'time.death'] = time_death
+  pos[nrw, 'label']      = label
+  pos[nrw, 'active']     = active
+  pos[nrw, 'type']       = type
+  pos[nrw, 'price']      = price
+  pos[nrw, 'lot']        = lot
+  pos[nrw, 'tp']         = tp
+  pos[nrw, 'sl']         = sl
+  pos[nrw, 'profit']     = 0.0
+  return(pos)
+}
 
 insert.history = function(his, time, lots, equity, balance){
   # This function inserts a row to the end of history data frame
@@ -59,6 +78,8 @@ combine.influenced.positions <- function(inf_pos){
 
 
 # Creating a VIRTUAL.TRADER class
+#' @export VIRTUAL.TRADER
+#' @exportClass VIRTUAL.TRADER
 VIRTUAL.TRADER <- setRefClass("VIRTUAL.TRADER",
                               fields = list(
                                 number.of.intervals = "numeric",

@@ -27,6 +27,7 @@
 #
 # for (lib in lib.set){source(lib)}
 
+#' @export
 default.parameters <- function(strategy_name){
   if      (strategy_name == "prc_wll_lve"){
     pm = list(hyper_tp = 1000, hyper_sl=1000, hyper_ts = FALSE, expiry_tn = NA, max_dur = NA, lot = 0.1)
@@ -65,6 +66,7 @@ default.parameters <- function(strategy_name){
   return(pm)
 }
 
+#' @export
 check.parameters <- function(vt, parameters, strategy_name){
   strategies.with.tp  = c("neg_lin", "sgl_ltd", "mul_ltd")
   strategies.with.sl  = c("sgl_ltd", "mul_ltd")
@@ -74,7 +76,7 @@ check.parameters <- function(vt, parameters, strategy_name){
 
 
   valid = TRUE
-  valid = valid & (parameters$lot <= 100) & (parameters$lot >= 0.01)
+  valid = valid & (parameters$lot <= 10000000) & (parameters$lot >= 0.000000000001)
   valid = valid & ((parameters$hyper_tp  >= 0)| is.na(parameters$hyper_tp)) & ((parameters$hyper_sl >= 0)| is.na(parameters$hyper_sl))
   valid = valid & (parameters$expiry_tn > vt$current.time.number) & (parameters$expiry_tn <= vt$number.of.intervals)
 
@@ -90,6 +92,7 @@ check.parameters <- function(vt, parameters, strategy_name){
   return(valid)
 }
 
+#' @export
 match.lot <- function(lots, desired_lot){
   # If we have a set of buy and sell positions with various lots, and we want the balance of this set
   # be a certain desired_lot. Which of them should be closed so that we don't add any extra position
@@ -121,6 +124,7 @@ match.lot <- function(lots, desired_lot){
   if (ltbt == 0){return (lots)} else {return(c(lots, ltbt))}
 }
 
+#' @export
 permit <- function(vt, pm){
   eq = vt$equity()
   if (pm$hyper_ts){SL = max(vt$history$equity) - pm$hyper_sl} else {SL = - pm$hyper_sl}
@@ -145,6 +149,7 @@ milk <- function(vt, pos_list){
   }
 }
 
+#' @export
 ltd.decide <- function(vt, pm){
   # Decision making framework for ltd_sngl and ltd_mul strategies
   # Takes a position with pm$tp and pm$sl(limited) in a certain given direction if there is no existing position
@@ -162,6 +167,7 @@ ltd.decide <- function(vt, pm){
   return(vt)
 }
 
+#' @export
 sgl_ltd <- function(vt, pm = default.parameters("sgl_ltd")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   assert(check.parameters(vt, pm, "sgl_ltd"), "Error from sgl_ltd: invalid parameters")
@@ -170,6 +176,7 @@ sgl_ltd <- function(vt, pm = default.parameters("sgl_ltd")){
   vt$jump.next(pm$expiry_tn)
 }
 
+#' @export
 mul_ltd <- function(vt, pm = default.parameters("mul_ltd")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   assert(check.parameters(vt, pm, "mul_ltd"), "Error from mul_ltd: invalid parameters")
@@ -181,6 +188,7 @@ mul_ltd <- function(vt, pm = default.parameters("mul_ltd")){
   }
 }
 
+#' @export
 prc_wll_lve.start <- function(vt, pm){
   vt$take.buy(lot = pm$lot, label = "PWL")
 }
@@ -195,6 +203,8 @@ prc_wll_lve.decide <- function(vt, pm, base){
     vt$take.sell(lot = pm$lot, label = "PWL")
   }
 }
+
+#' @export
 prc_wll_lve <- function(vt, pm = default.parameters("prc_wll_lve")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -209,6 +219,7 @@ prc_wll_lve <- function(vt, pm = default.parameters("prc_wll_lve")){
   }
 }
 
+#' @export
 neg_lin.start <- function(vt, pm){
   if (pm$dir %in% c(1,-1)){
     vt$take.position.array(n = pm$n.above, direction = pm$dir, tp = (1-2*pm$tp_man)*pm$tp.pips, lot = pm$lot, gap = pm$gap.pips, manual = pm$pend_man, label  = pm$label)
@@ -219,6 +230,8 @@ neg_lin.start <- function(vt, pm){
     vt$take.position.array(n = pm$n.below, direction =  1, tp = (1-2*pm$tp_man)*pm$tp.pips, lot = pm$lot, gap = pm$gap.pips, manual = pm$pend_man, label  = pm$label, above = FALSE, take_now = FALSE)
   }
 }
+
+#' @export
 neg_lin.decide <-function(vt, pm, s){
   spr = vt$spread*vt$pip
   tbl = function(inf_pos){
@@ -234,6 +247,8 @@ neg_lin.decide <-function(vt, pm, s){
     }
   }
 }
+
+#' @export
 neg_lin <- function(vt, pm = default.parameters("neg_lin") ){
   # The strategy program starts here
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
@@ -248,6 +263,7 @@ neg_lin <- function(vt, pm = default.parameters("neg_lin") ){
   }
 }
 
+#' @export
 pos_lin.start <- function(vt, pm){
   if (pm$dir %in% c(1,-1)){
     vt$take.position.array(n = pm$n.above, direction = pm$dir, sl = (1-2*pm$sl_man)*pm$sl.pips, lot = pm$lot, gap = pm$gap.pips, manual = pm$pend_man, label  = pm$label, take_now = FALSE)
@@ -257,6 +273,8 @@ pos_lin.start <- function(vt, pm){
     vt$take.position.array(n = pm$n.below, direction = -1, sl = (1-2*pm$sl_man)*pm$sl.pips, lot = pm$lot, gap = pm$gap.pips, manual = pm$pend_man, label  = pm$label, above = FALSE, take_now = pm$take_now)
   }
 }
+
+#' @export
 pos_lin.decide <-function(vt, pm, s){
   spr = vt$spread*vt$pip
   tbs = function(inf_pos){
@@ -276,6 +294,8 @@ pos_lin.decide <-function(vt, pm, s){
     }
   }
 }
+
+#' @export
 pos_lin <- function(vt, pm = default.parameters("pos_lin") ){
   # The strategy program starts here
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
@@ -291,6 +311,7 @@ pos_lin <- function(vt, pm = default.parameters("pos_lin") ){
   }
 }
 
+#' @export
 smp_cmp.start  <- function(vt, pm){
   if (pm$dir == 1) {
     vt$take.buy(lot = pm$lot, label = "SCP")
@@ -298,6 +319,8 @@ smp_cmp.start  <- function(vt, pm){
     vt$take.sell(lot = pm$lot, label = "SCP")
   }
 }
+
+#' @export
 smp_cmp.decide <- function(vt, pm){
   vt$close(which(vt$position$profit > 0), labels = "SCP")
   pr = vt$profit(labels = "SCP")
@@ -318,6 +341,8 @@ smp_cmp.decide <- function(vt, pm){
       vt$take.sell(lot = - lots.to.be.taken, label = "SCP")
     }
 }
+
+#' @export
 smp_cmp = function(vt, pm = default.parameters("smp_cmp")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -330,6 +355,7 @@ smp_cmp = function(vt, pm = default.parameters("smp_cmp")){
   }
 }
 
+#' @export
 neg_lin_man.decide <- function(vt, pm){
   gap.dollars = 10*pm$gap.pips*pm$lot
   tp.dollars  = 10*pm$tp.pips*pm$lot
@@ -349,6 +375,8 @@ neg_lin_man.decide <- function(vt, pm){
     vt$take.position(direction = pm$dir, lot = pm$lot, label = "NLM")
   }
 }
+
+#' @export
 neg_lin_man <- function(vt, pm = default.parameters("neg_lin_man")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -360,6 +388,7 @@ neg_lin_man <- function(vt, pm = default.parameters("neg_lin_man")){
   }
 }
 
+#' @export
 adv_cmp <- function(vt, pm = default.parameters("adv_cmp")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -409,6 +438,7 @@ adv_cmp <- function(vt, pm = default.parameters("adv_cmp")){
   }
 }
 
+#' @export
 paradise = function(vt, pm = default.parameters("paradise")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -485,6 +515,7 @@ paradise = function(vt, pm = default.parameters("paradise")){
   }
 }
 
+#' @export
 paradise_cb = function(vt, pm = default.parameters("paradise")){
   # paradise constant base, the base does not change at all
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
@@ -554,6 +585,7 @@ paradise_cb = function(vt, pm = default.parameters("paradise")){
 }
 
 
+#' @export
 pwl_auto = function(vt, pm = default.parameters("pwl_auto")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -614,6 +646,7 @@ pwl_auto = function(vt, pm = default.parameters("pwl_auto")){
   }
 }
 
+#' @export
 pwl_auto_cb = function(vt, pm = default.parameters("pwl_auto")){
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
   if (!is.na(pm$max_dur)){pm$expiry_tn = min(vt$number.of.intervals, vt$current.time.number+pm$max_dur)}
@@ -650,6 +683,7 @@ pwl_auto_cb = function(vt, pm = default.parameters("pwl_auto")){
 }
 
 
+#' @export
 balance.inv = function(vt, pm = default.parameters("balance.inv")){
 
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
@@ -674,6 +708,7 @@ balance.inv = function(vt, pm = default.parameters("balance.inv")){
 }
 
 
+#' @export
 balance = function(vt, pm = default.parameters("balance")){
 
   if (is.na(pm$expiry_tn)){pm$expiry_tn = vt$number.of.intervals-2}
