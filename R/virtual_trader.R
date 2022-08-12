@@ -48,8 +48,8 @@ insert.position = function(pos, time_num_order, time_num_birth = time_num_order,
   pos[nrw, 'time.num.order'] =  time_num_order
   pos[nrw, 'time.num.birth'] =  time_num_birth
   pos[nrw, 'time.num.death'] =  time_num_death
-  pos[nrw, 'time.birth'] = time_birth
-  pos[nrw, 'time.death'] = time_death
+  pos[nrw, 'time.birth'] = as.POSIXct(time_birth)
+  pos[nrw, 'time.death'] = as.POSIXct(time_death)
   pos[nrw, 'label']      = label
   pos[nrw, 'active']     = active
   pos[nrw, 'type']       = type
@@ -265,6 +265,7 @@ VIRTUAL.TRADER <- setRefClass("VIRTUAL.TRADER",
                                     position.update(pos_number = dim(position)[1], pos_price= current.price)
                                   } else {print("take.buy Error: Position is not taken due to ill tp or sl values")}
                                 },
+                                
                                 take.sell = function(lot = 0.1, tp = 0, sl = 0, label = "UNNAMED", setting = "pips"){
                                   # takes a sell position at the current date-time with given lot, stop loss(sl) and take profit (tp)
                                   # settings for tp and sl is the same as function take.buy

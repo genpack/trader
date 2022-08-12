@@ -40,72 +40,7 @@ apply.strategy <- function(vt, strategy_name, time_number, parameters = default.
     parameters$hyper_tp = parameters$hyper_sl * tpsl_ratio
   }
 
-  if (strategy_name == "sgl_ltd"){
-    # Single Limited Strategy:
-    # takes only one buy or sell position with tp or sl
-    # in this strategy hyper_tp is the tp and hyper_sl is the sl of the position taken
-    vt = sgl_ltd(vt, parameters)
-  }
-
-  else if (strategy_name == "mul_ltd"){
-    # simply takes sequential buy or sell positions with defined tp and sl
-    # waits until the previous position hits tp or sl and then takes the next position
-    # This continues until one of hyper_tp or hyper_sl are hit or the strategy expires
-    # This strategy does not have any prediction models.
-    # All the positions are either buy or sell regardless of the technical or fundamental status of the market
-    # Definition of Parameters:
-    # parameters$dir     : if 1, buys are always taken, if -1 sells are taken
-    # parameters$lot     : lots for taking, if positive buys and if negative, sells are taken
-    # parameters$tp.pips : tp for the positions
-    # parameters$sl.pips : sl for the positions
-
-    vt = mul_ltd(vt, parameters)
-  }
-
-  else if (strategy_name == "prc_wll_lve"){
-    prc_wll_lve(vt, parameters)
-  }
-
-  else if (strategy_name == "neg_lin"){
-    neg_lin(vt, parameters)
-  }
-
-  else if (strategy_name == "pos_lin"){
-    pos_lin(vt, parameters)
-  }
-
-  else if (strategy_name == "neg_lin_man"){
-    neg_lin_man(vt, parameters)
-  }
-
-  else if (strategy_name == "smp_cmp"){
-    smp_cmp(vt, parameters)
-  }
-
-  else if (strategy_name == "adv_cmp"){
-    adv_cmp(vt, parameters)
-  }
-
-  else if (strategy_name == "paradise"){
-    paradise(vt, parameters)
-  }
-
-  else if (strategy_name == "paradise_cb"){
-    paradise_cb(vt, parameters)
-  }
-
-  else if (strategy_name == "pwl_auto"){
-    pwl_auto(vt, parameters)
-  }
-
-  else if (strategy_name == "pwl_auto_cb"){
-    pwl_auto_cb(vt, parameters)
-  }
-
-  else  {
-    print("apply.strategy Error: Unknown strategy name")
-    return()
-  }
+  do.call(strategy_name, args = list(vt, parameters))
 
   # Extracting Results for Output:
   dur = vt$current.time.number - time_number
@@ -128,8 +63,9 @@ apply.strategy <- function(vt, strategy_name, time_number, parameters = default.
 
   mxl = max(abs.lots)
   avl = mean(abs.lots)
+  nps = sum(!is.na(vt$position$time.num.birth))
 
-  output = list(duration = dur, last.equity = leq, min.equity = mnq, max.equity = mxq, mean.equity = avq, max.lot = mxl, mean.lot = avl, result.flag = rf)
+  output = list(duration = dur, last.equity = leq, min.equity = mnq, max.equity = mxq, mean.equity = avq, max.lot = mxl, mean.lot = avl, num.pos = nps, result.flag = rf)
 
   return(output)
 }
@@ -196,6 +132,7 @@ evaluate.strategy = function(vt, strategy_name, desired_test_table){
   max.equity  = rep(0, N)
   mean.equity = rep(0, N)
   max.lot     = rep(0, N)
+  num.pos     = rep(0, N)
   mean.lot    = rep(0, N)
   ben.per.day = rep(0, N)
   rate = rep(0, N)
@@ -211,6 +148,7 @@ evaluate.strategy = function(vt, strategy_name, desired_test_table){
     max.equity[i]  = res$max.equity
     mean.equity[i] = res$mean.equity
     max.lot[i]     = res$max.lot
+    num.pos[i]     = res$num.pos
     mean.lot[i]    = res$mean.lot
     ben.per.day[i] = res$last.equity/res$duration
     rate[i] = ben.per.day[i]/(abs(min.equity[i]) + 1000*max.lot[i])
@@ -218,7 +156,7 @@ evaluate.strategy = function(vt, strategy_name, desired_test_table){
     cat("Experiment (",i,"): applied ", strategy_name ," strategy at: ", desired_test_table[i ,1], " with parameters: (TP = ", param$hyper_tp, " SL = ", param$hyper_sl, " Equity = ", last.equity[i], ")","\n")
   }
 
-  output = data.frame(desired_test_table, duration, equity = last.equity, min_eq = min.equity, max_eq = max.equity, mean_eq = mean.equity, max_lot = max.lot, mean_lot = mean.lot, per_day = ben.per.day, rate = rate, success = result.flag)
+  output = data.frame(desired_test_table, duration, equity = last.equity, min_eq = min.equity, max_eq = max.equity, mean_eq = mean.equity, max_lot = max.lot, mean_lot = mean.lot, num_pos = num.pos, per_day = ben.per.day, rate = rate, success = result.flag)
   return(output)
 }
 
